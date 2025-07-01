@@ -2,11 +2,11 @@
 
 
 a = Analysis(
-    ['news_parser.py'],
+    ['src/news_parser.py'],
     pathex=[],
     binaries=[],
-    datas=[],
-    hiddenimports=[],
+    datas=[('src/style.css', 'src')],
+    hiddenimports=['requests'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
