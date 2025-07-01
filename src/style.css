@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
 :root {
     --video: #e67e22;
     --feedback: #2ecc71;
@@ -7,12 +9,21 @@
     --text: #e6e6e6;
     --text-light: #b3e5fc;
     --card-bg: rgba(30, 30, 50, 0.9);
+    --font-main: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-main);
 }
 
 body {
     background: var(--bg-dark);
     color: var(--text);
-    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-family: var(--font-main);
+    font-weight: 400;
     line-height: 1.6;
     padding: 20px;
     max-width: 1000px;
@@ -22,54 +33,66 @@ body {
 
 header {
     text-align: center;
-    padding: 2rem 0;
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid rgba(13, 115, 119, 0.5);
+    padding: 30px 0;
+    background: rgba(26, 26, 46, 0.7);
+    border-radius: 15px;
+    margin-bottom: 25px;
+    border-bottom: 3px solid var(--accent);
 }
 
 h1 {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
+    font-weight: 500;
+    margin-bottom: 10px;
     color: #4fc3f7;
-    margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
+}
+
+h2, h3 {
+    font-weight: 500;
 }
 
 .subtitle {
-    color: var(--text-light);
-    font-size: 1.1rem;
-    opacity: 0.9;
+    font-size: 1.2rem;
+    font-weight: 300;
+    color: #81d4fa;
+    margin-bottom: 15px;
 }
 
 .timestamp {
     text-align: right;
     color: var(--text-light);
     font-size: 0.9rem;
-    margin-bottom: 1.5rem;
-    opacity: 0.8;
+    font-weight: 300;
+    margin-bottom: 25px;
 }
 
 .category {
     font-size: 1.4rem;
-    margin: 2rem 0 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(13, 115, 119, 0.3);
+    font-weight: 500;
+    margin: 30px 0 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent);
     color: #4fc3f7;
 }
 
 .news-grid {
     display: grid;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
 .news-item {
     background: var(--card-bg);
-    border-radius: 8px;
-    border-left: 4px solid;
-    transition: transform 0.2s ease;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    border-left: 5px solid;
 }
 
 .news-item:hover {
-    transform: translateY(-3px);
+    transform: translateY(-5px);
 }
 
 .video { border-left-color: var(--video); }
@@ -77,53 +100,74 @@ h1 {
 .promotion { border-left-color: var(--promotion); }
 
 .news-content {
-    padding: 1.2rem;
+    padding: 20px;
 }
 
 .news-item h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+    font-weight: 500;
 }
 
 .news-item h3 a {
-    color: white;
+    color: #fff;
     text-decoration: none;
+    transition: color 0.2s;
+    display: block;
 }
 
 .news-item h3 a:hover {
+    color: #4fc3f7;
     text-decoration: underline;
 }
 
 .meta {
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem;
-    color: var(--text-light);
-    margin-top: 0.5rem;
+    align-items: center;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    font-weight: 400;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .source {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.video .source { background: rgba(230, 126, 34, 0.2); }
+.feedback .source { background: rgba(46, 204, 113, 0.2); }
+.promotion .source { background: rgba(155, 89, 182, 0.2); }
+
+.date {
+    color: var(--text-light);
+    opacity: 0.9;
+    font-size: 0.85rem;
+    font-weight: 300;
 }
 
 footer {
     text-align: center;
-    margin-top: 3rem;
-    padding: 1rem;
-    border-top: 1px solid rgba(13, 115, 119, 0.3);
-}
-
-.version {
-    color: var(--text-light);
-    font-size: 0.9rem;
-    letter-spacing: 1px;
+    padding: 25px;
+    color: #81d4fa;
+    font-size: 0.95rem;
+    font-weight: 300;
+    border-top: 1px solid var(--accent);
+    margin-top: 20px;
 }
 
 @media (max-width: 768px) {
-    body { padding: 15px; }
-    h1 { font-size: 2rem; }
-    .news-content { padding: 1rem; }
+    h1 {
+        font-size: 2.2rem;
+    }
+    .category {
+        font-size: 1.2rem;
+    }
+    .news-content {
+        padding: 15px;
+    }
 }

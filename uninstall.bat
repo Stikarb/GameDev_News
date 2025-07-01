@@ -2,8 +2,8 @@
 setlocal enabledelayedexpansion
 
 echo Выберите действие:
-echo 1. Удалить только временные файлы
-echo 2. Удалить весь проект
+echo 1. Удалить временные файлы (оставить проект)
+echo 2. Полностью удалить проект
 set /p choice="Введите номер [1-2]: "
 
 if "!choice!"=="1" (
@@ -12,8 +12,8 @@ if "!choice!"=="1" (
     if exist dist rmdir /s /q dist
     if exist build rmdir /s /q build
     del news_parser.exe 2>nul
-    del game_news.html 2>nul
     del news_parser.spec 2>nul
+    del game_news.html 2>nul
     echo Временные файлы удалены
 ) else if "!choice!"=="2" (
     echo Полное удаление проекта...
@@ -21,7 +21,7 @@ if "!choice!"=="1" (
     cd /d "%project_dir%"
     cd ..
     rmdir /s /q "%project_dir%"
-    echo Проект полностью удален
+    echo Проект удален
 ) else (
     echo Неверный выбор
     exit /b 1

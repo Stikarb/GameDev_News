@@ -3,7 +3,7 @@ dist/
 build/
 __pycache__/
 *.spec
-game_news.html
 news_parser
 news_parser.exe
+game_news.html
 *.log
