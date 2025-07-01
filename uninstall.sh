@@ -1,20 +1,25 @@
 #!/bin/bash
 
-echo "Вы хотите удалить только временные файлы (1) или весь проект (2)?"
-read -p "Введите 1 или 2: " choice
+echo "Выберите действие:"
+echo "1) Удалить только временные файлы"
+echo "2) Удалить весь проект"
+read -rp "Введите номер [1-2]: " choice
 
-if [ "$choice" = "1" ]; then
-    echo "Удаление временных файлов..."
-    rm -rf venv
-    rm -rf dist
-    rm -rf build
-    rm -f news_parser
-    rm -f game_news.html
-    rm -f news_parser.spec
-elif [ "$choice" = "2" ]; then
-    echo "Удаление всего проекта..."
-    cd ..
-    rm -rf "$(basename "$PWD")"
-else
-    echo "Неверный выбор."
-fi
+case $choice in
+    1)
+        echo "Очистка временных файлов..."
+        rm -rf venv dist build
+        rm -f news_parser game_news.html news_parser.spec
+        echo "Очистка завершена"
+        ;;
+    2)
+        echo "Полное удаление проекта..."
+        cd ..
+        rm -rf -- "$(basename "$PWD")"
+        echo "Проект удален"
+        ;;
+    *)
+        echo "Неверный выбор"
+        exit 1
+        ;;
+esac
