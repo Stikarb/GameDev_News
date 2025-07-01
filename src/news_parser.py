@@ -91,12 +91,12 @@ def generate_html(videos, feedbacks, promotions):
 <body>
     <header>
         <h1>🎮 Вестник игростроя</h1>
-        <div class="subtitle">Свежие материалы для разработчиков игр</div>
+        <div class="subtitle">Свежие материалы прямо от разработчиков</div>
     </header>
     
     <div class="timestamp">Обновлено: {timestamp}</div>
     
-    <div class="category">🎥 Видео разработки</div>
+    <div class="category">Видео разработки</div>
     <div class="news-grid">
         {"".join(f'''
         <div class="news-item video">
@@ -111,7 +111,7 @@ def generate_html(videos, feedbacks, promotions):
         ''' for item in videos)}
     </div>
     
-    <div class="category">💬 Запросы фидбэка</div>
+    <div class="category">Запросы фидбэка</div>
     <div class="news-grid">
         {"".join(f'''
         <div class="news-item feedback">
@@ -126,7 +126,7 @@ def generate_html(videos, feedbacks, promotions):
         ''' for item in feedbacks)}
     </div>
     
-    <div class="category">🚀 Продвижение проектов</div>
+    <div class="category">Промо проектов</div>
     <div class="news-grid">
         {"".join(f'''
         <div class="news-item promotion">
