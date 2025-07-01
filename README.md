@@ -5,14 +5,31 @@
 ## Возможности
 - Сбор видео о разработке игр с r/IndieDev
 - Поиск запросов фидбэка с r/IndieDev
-- Анализ промо-материалов с r/indiegames
+- Анализ промо игр с r/indiegames
 - Генерация HTML-отчёта с категоризацией
 - Автономный исполняемый файл
 
-## Запуск
-```bash
-# Дайте права на выполнение скрипта
-chmod +x start.sh
+## Установка
 
-# Запустите сборку и выполнение
-./start.sh
+**Linux/macOS:**
+```bash
+chmod +x install.sh
+./install.sh
+```
+**Windows:**
+Запустите `install.bat`
+
+## Запуск программы
+После установки в корневой папке появится исполняемый файл:
+- Linux/macOS: `./news_parser`
+- Windows: `news_parser.exe`
+
+## Удаление
+
+**Linux/macOS:**
+```bash
+chmod +x uninstall.sh
+./uninstall.sh
+```
+**Windows:**
+Запустите `uninstall.bat`

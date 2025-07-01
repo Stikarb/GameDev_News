@@ -21,5 +21,4 @@ cp dist/news_parser .
 # Деактивируем виртуальное окружение
 deactivate
 
-# Запускаем программу
-./news_parser
+echo "Установка завершена. Запуск: ./news_parser"

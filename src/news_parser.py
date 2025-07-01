@@ -3,7 +3,7 @@ import datetime
 import webbrowser
 import os
 import time
-import json
+import sys
 
 def parse_reddit_indiedev():
     try:
@@ -69,7 +69,13 @@ def parse_reddit_indiegames():
         return []
 
 def load_css():
-    css_path = os.path.join(os.path.dirname(__file__), 'src', 'style.css')
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+        css_path = os.path.join(base_path, 'src', 'style.css')
+    else:
+        base_path = os.path.dirname(__file__)
+        css_path = os.path.join(base_path, 'style.css')
+    
     try:
         with open(css_path, 'r', encoding='utf-8') as f:
             return f.read()
@@ -90,7 +96,7 @@ def generate_html(videos, feedbacks, promotions):
 </head>
 <body>
     <header>
-        <h1>🎮 Вестник игростроя</h1>
+        <h1>Вестник игростроя</h1>
         <div class="subtitle">Свежие материалы прямо от разработчиков</div>
     </header>
     
@@ -160,6 +166,6 @@ if __name__ == "__main__":
     report_path = generate_html(videos, feedbacks, promotions)
     
     elapsed = time.time() - start_time
-    print(f"✅ Отчёт готов за {elapsed:.2f} сек")
-    print(f"📺 Видео: {len(videos)} | 💬 Фидбэк: {len(feedbacks)} | 🚀 Промо: {len(promotions)}")
+    print(f"Отчёт готов за {elapsed:.2f} сек")
+    print(f"Видео: {len(videos)} | Фидбэк: {len(feedbacks)} | Промо: {len(promotions)}")
     webbrowser.open(report_path)
