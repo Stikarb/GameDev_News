@@ -1,23 +1,19 @@
 #!/bin/bash
 
-# Проверка доступности Python
-if ! command -v python3 &> /dev/null; then
-    echo "Ошибка: Python3 не установлен"
-    exit 1
-fi
+# Удаление предыдущих сборок
+rm -rf dist build news_parser news_parser.spec 2>/dev/null
 
 # Создание виртуального окружения
-python3 -m venv venv || { echo "Не удалось создать venv"; exit 1; }
-
-# Активация окружения
+python3 -m venv venv || { echo "Ошибка создания venv"; exit 1; }
 source venv/bin/activate
 
 # Установка зависимостей
-pip install requests pyinstaller --quiet || { echo "Ошибка установки зависимостей"; deactivate; exit 1; }
+pip install requests pyinstaller --quiet || { echo "Ошибка установки пакетов"; deactivate; exit 1; }
 
 # Сборка исполняемого файла
 pyinstaller --onefile --noconsole \
     --add-data "src/style.css:src" \
+    --add-data "src/template.html:src" \
     --hidden-import=requests \
     src/news_parser.py || { echo "Ошибка сборки"; deactivate; exit 1; }
 

@@ -3,11 +3,12 @@ from datetime import datetime, timedelta
 import webbrowser
 import os
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 class RedditParser:
     def __init__(self):
-        self.user_agent = "RedditParser/1.0"
+        self.user_agent = "GameDevNewsParser/1.0"
         self.timeout = 15
         self.max_posts = 5
         self.min_post_age = 90  # дней
@@ -42,7 +43,10 @@ class RedditParser:
                     "title": data["title"],
                     "url": f"https://reddit.com{data['permalink']}",
                     "date": post_date.strftime("%d.%m.%Y"),
-                    "source": f"r/{subreddit}"
+                    "source": f"r/{subreddit}",
+                    "type": "video" if flair_type == "Video" else 
+                           "feedback" if flair_type == "Feedback" else 
+                           "promotion"
                 })
                 
                 if len(posts) >= self.max_posts:
@@ -53,6 +57,28 @@ class RedditParser:
         except Exception as error:
             print(f"Ошибка при обработке r/{subreddit}: {error}", file=sys.stderr)
             return []
+
+def get_template_path():
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+        return os.path.join(base_path, 'src', 'template.html')
+    else:
+        return os.path.join(os.path.dirname(__file__), 'template.html')
+
+def load_css():
+    try:
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+            css_path = os.path.join(base_path, 'src', 'style.css')
+        else:
+            base_path = os.path.dirname(__file__)
+            css_path = os.path.join(base_path, 'style.css')
+        
+        with open(css_path, 'r', encoding='utf-8') as f:
+            return f.read()
+    except Exception as e:
+        print(f"Ошибка загрузки CSS: {e}", file=sys.stderr)
+        return "body { font-family: sans-serif; }"
 
 def generate_report_content(data):
     html_content = []
@@ -78,45 +104,53 @@ def generate_report_content(data):
     return "\n".join(html_content)
 
 def main():
+    start_time = time.time()
     parser = RedditParser()
     
     with ThreadPoolExecutor() as executor:
-        futures = {
-            "videos": executor.submit(parser.fetch_posts, "IndieDev", "Video"),
-            "feedbacks": executor.submit(parser.fetch_posts, "IndieDev", "Feedback"),
-            "promotions": executor.submit(parser.fetch_posts, "indiegames", "Promotion")
-        }
+        videos_future = executor.submit(parser.fetch_posts, "IndieDev", "Video")
+        feedbacks_future = executor.submit(parser.fetch_posts, "IndieDev", "Feedback")
+        promotions_future = executor.submit(parser.fetch_posts, "indiegames", "Promotion")
         
-        results = {key: future.result() for key, future in futures.items()}
+        videos = videos_future.result() or []
+        feedbacks = feedbacks_future.result() or []
+        promotions = promotions_future.result() or []
     
     report_data = [
         {
             "name": "Видео разработки", 
-            "items": results["videos"],
+            "items": videos[:5],
             "class": "video"
         },
         {
             "name": "Запросы фидбэка",
-            "items": results["feedbacks"],
+            "items": feedbacks[:5],
             "class": "feedback"
         },
         {
             "name": "Промо проектов",
-            "items": results["promotions"], 
+            "items": promotions[:5], 
             "class": "promotion"
         }
     ]
     
-    with open("template.html", "r", encoding="utf-8") as file:
-        template = file.read()
+    try:
+        with open(get_template_path(), 'r', encoding='utf-8') as file:
+            template = file.read()
+    except FileNotFoundError as e:
+        print(f"Файл шаблона не найден: {e}", file=sys.stderr)
+        sys.exit(1)
     
-    final_html = template.replace(
-        "<!-- CONTENT_PLACEHOLDER -->", 
-        generate_report_content(report_data)
-    )
+    final_html = template.replace("{{css}}", load_css()) \
+                        .replace("{{timestamp}}", datetime.now().strftime("%d.%m.%Y %H:%M")) \
+                        .replace("<!-- CONTENT_PLACEHOLDER -->", generate_report_content(report_data))
     
     with open("game_news.html", "w", encoding="utf-8") as file:
         file.write(final_html)
+    
+    elapsed = time.time() - start_time
+    print(f"Отчёт сформирован за {elapsed:.2f} секунд")
+    print(f"Статистика: Видео {len(videos)} | Фидбэк {len(feedbacks)} | Промо {len(promotions)}")
     
     webbrowser.open("game_news.html")
 
