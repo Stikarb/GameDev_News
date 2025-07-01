@@ -1,175 +1,124 @@
 import requests
-import datetime
+from datetime import datetime, timedelta
 import webbrowser
 import os
-import time
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
-def fetch_reddit_posts(subreddit, limit=25, flair_filter=None):
-    """Получение постов с Reddit с возможностью фильтрации по flair"""
-    try:
-        url = f"https://www.reddit.com/r/{subreddit}/hot.json?limit={limit}"
-        headers = {"User-Agent": "GameDevNews/1.0"}
-        response = requests.get(url, headers=headers, timeout=15)
-        response.raise_for_status()
-        data = response.json()
-        
-        posts = []
-        for post in data['data']['children']:
-            p = post['data']
-            if p['stickied']:
-                continue
-                
-            # Проверка соответствия flair фильтру
-            post_flair = p.get('link_flair_text', '')
-            if flair_filter and post_flair != flair_filter:
-                continue
-                
-            # Фильтр по дате (не старше 3 месяцев)
-            post_date = datetime.datetime.fromtimestamp(p['created_utc'])
-            if (datetime.datetime.now() - post_date).days > 90:
-                continue
-                
-            posts.append({
-                "title": p['title'],
-                "url": "https://reddit.com" + p['permalink'],
-                "date": post_date.strftime('%d.%m.%Y'),
-                "source": f"r/{subreddit}",
-                "type": "video" if flair_filter == "Video" else 
-                       "feedback" if flair_filter == "Feedback?" else 
-                       "promotion"
-            })
-            if len(posts) >= 5:  # Нам нужно максимум 5 постов
-                break
-                
-        return posts
-        
-    except Exception as e:
-        print(f"Ошибка при получении данных из r/{subreddit}: {str(e)}", file=sys.stderr)
-        return []
+class RedditParser:
+    def __init__(self):
+        self.user_agent = "RedditParser/1.0"
+        self.timeout = 15
+        self.max_posts = 5
+        self.min_post_age = 90  # дней
 
-def load_css():
-    """Загрузка CSS с учетом режима выполнения (исходник или exe)"""
-    try:
-        if getattr(sys, 'frozen', False):
-            base_path = sys._MEIPASS
-            css_path = os.path.join(base_path, 'src', 'style.css')
-        else:
-            base_path = os.path.dirname(__file__)
-            css_path = os.path.join(base_path, 'style.css')
+    def fetch_posts(self, subreddit, flair_type=None):
+        try:
+            params = {"limit": 25}
+            if flair_type:
+                params["flair"] = flair_type
             
-        with open(css_path, 'r', encoding='utf-8') as f:
-            return f.read()
-    except Exception:
-        return "body { font-family: sans-serif; }"
+            response = requests.get(
+                f"https://www.reddit.com/r/{subreddit}/hot.json",
+                headers={"User-Agent": self.user_agent},
+                params=params,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            
+            posts = []
+            cutoff_date = datetime.now() - timedelta(days=self.min_post_age)
+            
+            for post in response.json()["data"]["children"]:
+                data = post["data"]
+                if data["stickied"]:
+                    continue
+                
+                post_date = datetime.fromtimestamp(data["created_utc"])
+                if post_date < cutoff_date:
+                    continue
+                
+                posts.append({
+                    "title": data["title"],
+                    "url": f"https://reddit.com{data['permalink']}",
+                    "date": post_date.strftime("%d.%m.%Y"),
+                    "source": f"r/{subreddit}"
+                })
+                
+                if len(posts) >= self.max_posts:
+                    break
+            
+            return posts
+        
+        except Exception as error:
+            print(f"Ошибка при обработке r/{subreddit}: {error}", file=sys.stderr)
+            return []
 
-def generate_html(videos, feedbacks, promotions):
-    """Генерация HTML отчета с гарантированными 5 элементами в каждой секции"""
-    timestamp = datetime.datetime.now().strftime("%d.%m.%Y %H:%M")
-    
-    # Дополняем списки до 5 элементов, если нужно
-    for lst in [videos, feedbacks, promotions]:
-        while len(lst) < 5:
-            lst.append({
-                "title": "Материал не найден",
-                "url": "#",
-                "date": "Н/Д",
-                "source": "Система",
-                "type": lst[0]["type"] if lst else "promotion"
-            })
-    
-    html = f"""<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вестник игростроя</title>
-    <style>{load_css()}</style>
-</head>
-<body>
-    <header>
-        <h1>Вестник игростроя</h1>
-        <div class="subtitle">Последние материалы для разработчиков игр</div>
-    </header>
-    
-    <div class="timestamp">Обновлено: {timestamp}</div>
-    
-    <div class="category">Видео разработки</div>
-    <div class="news-grid">
-        {''.join(f'''
-        <div class="news-item video">
-            <div class="news-content">
-                <h3><a href="{item['url']}" target="_blank">{item['title']}</a></h3>
-                <div class="meta">
-                    <div class="source">{item['source']}</div>
-                    <div class="date">{item['date']}</div>
+def generate_report_content(data):
+    html_content = []
+    for category in data:
+        html_content.append(f'<div class="category">{category["name"]}</div>')
+        html_content.append('<div class="news-grid">')
+        
+        for item in category["items"]:
+            html_content.append(f'''
+            <div class="news-item {category["class"]}">
+                <div class="news-content">
+                    <h3><a href="{item["url"]}" target="_blank">{item["title"]}</a></h3>
+                    <div class="meta">
+                        <div class="source">{item["source"]}</div>
+                        <div class="date">{item["date"]}</div>
+                    </div>
                 </div>
             </div>
-        </div>
-        ''' for item in videos[:5])}
-    </div>
+            ''')
+        
+        html_content.append('</div>')
     
-    <div class="category">Запросы фидбэка</div>
-    <div class="news-grid">
-        {''.join(f'''
-        <div class="news-item feedback">
-            <div class="news-content">
-                <h3><a href="{item['url']}" target="_blank">{item['title']}</a></h3>
-                <div class="meta">
-                    <div class="source">{item['source']}</div>
-                    <div class="date">{item['date']}</div>
-                </div>
-            </div>
-        </div>
-        ''' for item in feedbacks[:5])}
-    </div>
-    
-    <div class="category">Промо проектов</div>
-    <div class="news-grid">
-        {''.join(f'''
-        <div class="news-item promotion">
-            <div class="news-content">
-                <h3><a href="{item['url']}" target="_blank">{item['title']}</a></h3>
-                <div class="meta">
-                    <div class="source">{item['source']}</div>
-                    <div class="date">{item['date']}</div>
-                </div>
-            </div>
-        </div>
-        ''' for item in promotions[:5])}
-    </div>
-    
-    <footer>
-        <div class="version">Вестник игростроя • v5.1</div>
-    </footer>
-</body>
-</html>"""
-    
-    with open("game_news.html", "w", encoding="utf-8") as f:
-        f.write(html)
-    return os.path.abspath("game_news.html")
+    return "\n".join(html_content)
 
 def main():
-    start_time = time.time()
+    parser = RedditParser()
     
-    # Параллельный сбор данных
     with ThreadPoolExecutor() as executor:
-        videos_future = executor.submit(fetch_reddit_posts, "IndieDev", 25, "Video")
-        feedbacks_future = executor.submit(fetch_reddit_posts, "IndieDev", 25, "Feedback?")
-        promotions_future = executor.submit(fetch_reddit_posts, "indiegames", 25, "Promotion")
+        futures = {
+            "videos": executor.submit(parser.fetch_posts, "IndieDev", "Video"),
+            "feedbacks": executor.submit(parser.fetch_posts, "IndieDev", "Feedback"),
+            "promotions": executor.submit(parser.fetch_posts, "indiegames", "Promotion")
+        }
         
-        videos = videos_future.result()
-        feedbacks = feedbacks_future.result()
-        promotions = promotions_future.result()
+        results = {key: future.result() for key, future in futures.items()}
     
-    report_path = generate_html(videos, feedbacks, promotions)
+    report_data = [
+        {
+            "name": "Видео разработки", 
+            "items": results["videos"],
+            "class": "video"
+        },
+        {
+            "name": "Запросы фидбэка",
+            "items": results["feedbacks"],
+            "class": "feedback"
+        },
+        {
+            "name": "Промо проектов",
+            "items": results["promotions"], 
+            "class": "promotion"
+        }
+    ]
     
-    elapsed = time.time() - start_time
-    print(f"Отчёт сформирован за {elapsed:.2f} секунд")
-    print(f"Статистика: Видео {len(videos)} | Фидбэк {len(feedbacks)} | Промо {len(promotions)}")
+    with open("template.html", "r", encoding="utf-8") as file:
+        template = file.read()
     
-    webbrowser.open(report_path)
+    final_html = template.replace(
+        "<!-- CONTENT_PLACEHOLDER -->", 
+        generate_report_content(report_data)
+    )
+    
+    with open("game_news.html", "w", encoding="utf-8") as file:
+        file.write(final_html)
+    
+    webbrowser.open("game_news.html")
 
 if __name__ == "__main__":
     main()
