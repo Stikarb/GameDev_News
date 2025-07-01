@@ -1,20 +1,9 @@
-# Временные файлы Python
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Файлы сборки и исполняемые файлы
-build/
-dist/
-*.spec
-news_parser
-
-# Сгенерированный отчет
-game_news.html
-
-# Виртуальное окружение
 venv/
-
-# Настройки IDE
-.vscode/
-.idea/
+dist/
+build/
+__pycache__/
+*.spec
+game_news.html
+news_parser
+news_parser.exe
+*.log
